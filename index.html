@@ -3,58 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Counter</title>
-    <!-- Firebase Configuration -->
+    <title>Simple Counter</title>
     <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCoP6dxdtoAIGrGWCjjydkPSGQnM3ZOcis",
-            authDomain: "counter-9c5c8.firebaseapp.com",
-            projectId: "counter-9c5c8",
-            storageBucket: "counter-9c5c8.appspot.com",
-            messagingSenderId: "493825958884",
-            appId: "1:493825958884:web:ac5a6d847b3a0f30a6ddf1"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Reference to the counter document
-        const counterRef = doc(db, "counters", "counter");
-
         // Initialize counter value
         let counter = 0;
 
-        // Listen for real-time updates
-        onSnapshot(counterRef, (doc) => {
-            if (doc.exists()) {
-                counter = doc.data().value;
-                document.getElementById('counter').innerText = counter;
-            }
-        });
+        // Function to update counter display
+        function updateCounterDisplay() {
+            document.getElementById('counter').innerText = counter;
+        }
 
         // Function to increment counter
-        async function incrementCounter() {
+        function incrementCounter() {
             counter++;
-            document.getElementById('counter').innerText = counter;
-            await setDoc(counterRef, { value: counter });
+            updateCounterDisplay();
         }
 
         // Function to reset counter
-        async function resetCounter() {
+        function resetCounter() {
             counter = 0;
-            document.getElementById('counter').innerText = counter;
-            await setDoc(counterRef, { value: counter });
+            updateCounterDisplay();
         }
 
         // Make functions available globally
         window.incrementCounter = incrementCounter;
         window.resetCounter = resetCounter;
+
+        // Initialize counter display on page load
+        window.addEventListener('load', updateCounterDisplay);
     </script>
 </head>
 <body>
