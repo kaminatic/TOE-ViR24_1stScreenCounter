@@ -2,40 +2,199 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Counter</title>
+    <title>Live Counter</title>
+    <style>
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            50% {
+                transform: translate(calc(-2px + var(--randomX)), calc(-2px + var(--randomY))) scale(calc(1 + var(--randomScale)));
+            }
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background-color: #f0f0f0;
+            font-family: 'Roboto Mono', monospace;
+        }
+        #image-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            background: url('images/screen.svg') no-repeat center center;
+            background-size: contain;
+        }
+        #counter-text {
+            position: absolute;
+            left: 466px;
+            top: 925px;
+            font-size: 65px;
+            font-weight: 700;
+            color: #3C0C3E;
+        }
+        .virus-container {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            animation: float 10s infinite ease-in-out;
+        }
+        .virus-image {
+            width: 100%;
+            height: 100%;
+        }
+        .virus-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #FFFFFF;
+            pointer-events: none;
+        }
+        #counter-container {
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+            padding: 50px 0;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin: 10px;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
     <script type="module">
-        // Initialize counter value
-        let counter = 0;
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        // Function to update counter display
-        function updateCounterDisplay() {
-            document.getElementById('counter').innerText = counter;
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoP6dxdtoAIGrGWCjjydkPSGQnM3ZOcis",
+            authDomain: "counter-9c5c8.firebaseapp.com",
+            databaseURL: "https://counter-9c5c8-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "counter-9c5c8",
+            storageBucket: "counter-9c5c8.appspot.com",
+            messagingSenderId: "493825958884",
+            appId: "1:493825958884:web:ac5a6d847b3a0f30a6ddf1"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Reference to the counter in the database
+        const counterRef = ref(database, 'counter');
+
+        // Listen for counter value changes
+        onValue(counterRef, (snapshot) => {
+            const counterValue = snapshot.val();
+            document.getElementById('counter-text').innerText = `cases: ${counterValue}`;
+            document.getElementById('counter').innerText = counterValue;
+            console.log(`Counter updated: ${counterValue}`);
+        });
+
+        // Increment counter
+        window.incrementCounter = function() {
+            console.log("Increment button clicked");
+            runTransaction(counterRef, (currentValue) => {
+                return (currentValue || 0) + 1;
+            }).then(() => {
+                console.log("Counter incremented");
+            }).catch((error) => {
+                console.error("Error incrementing counter: ", error);
+            });
         }
 
-        // Function to increment counter
-        function incrementCounter() {
-            counter++;
-            updateCounterDisplay();
+        // Reset counter
+        window.resetCounter = function() {
+            console.log("Reset button clicked");
+            runTransaction(counterRef, () => {
+                return 0;
+            }).then(() => {
+                console.log("Counter reset");
+            }).catch((error) => {
+                console.error("Error resetting counter: ", error);
+            });
         }
 
-        // Function to reset counter
-        function resetCounter() {
-            counter = 0;
-            updateCounterDisplay();
-        }
-
-        // Make functions available globally
-        window.incrementCounter = incrementCounter;
-        window.resetCounter = resetCounter;
-
-        // Initialize counter display on page load
-        window.addEventListener('load', updateCounterDisplay);
+        // Apply random animation variables
+        document.addEventListener('DOMContentLoaded', () => {
+            const virusContainers = document.querySelectorAll('.virus-container');
+            virusContainers.forEach(container => {
+                const randomX = (Math.random() * 10 - 5) + 'px';
+                const randomY = (Math.random() * 10 - 5) + 'px';
+                const randomScale = (Math.random() * 0.4 - 0.2);
+                container.style.setProperty('--randomX', randomX);
+                container.style.setProperty('--randomY', randomY);
+                container.style.setProperty('--randomScale', randomScale);
+            });
+        });
     </script>
 </head>
 <body>
-    <h1>Counter: <span id="counter">0</span></h1>
-    <button onclick="incrementCounter()">Increment</button>
-    <button onclick="resetCounter()">Reset</button>
+    <div id="image-container">
+        <div id="counter-text">cases: 0</div>
+        <div class="virus-container" style="left: 931px; top: 584px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">1</div>
+        </div>
+        <div class="virus-container" style="left: 1048px; top: 582px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">2</div>
+        </div>
+        <div class="virus-container" style="left: 1167px; top: 458px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">3</div>
+        </div>
+        <div class="virus-container" style="left: 1428px; top: 582px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">4</div>
+        </div>
+        <div class="virus-container" style="left: 933px; top: 827px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">5</div>
+        </div>
+        <div class="virus-container" style="left: 1675px; top: 453px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">6</div>
+        </div>
+        <div class="virus-container" style="left: 1302px; top: 332px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">7</div>
+        </div>
+        <div class="virus-container" style="left: 1554px; top: 453px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">8</div>
+        </div>
+        <div class="virus-container" style="left: 1549px; top: 708px;">
+            <img src="images/virus.svg" alt="virus" class="virus-image">
+            <div class="virus-text">9</div>
+        </div>
+    </div>
+    <div id="counter-container">
+        <h1>Live Counter: <span id="counter">0</span></h1>
+        <button onclick="incrementCounter()">Increment</button>
+        <button onclick="resetCounter()">Reset</button>
+    </div>
 </body>
 </html>
